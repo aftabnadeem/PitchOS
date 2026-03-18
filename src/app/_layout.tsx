@@ -1,16 +1,56 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import React from 'react';
-import { useColorScheme } from 'react-native';
+import 'react-native-url-polyfill/auto'
+import { supabase } from '@/lib/supabase'
+import { router, Stack } from 'expo-router'
+import { useEffect } from 'react'
+import { useFonts } from 'expo-font'
+import { Syne_700Bold, Syne_800ExtraBold, Syne_600SemiBold } from '@expo-google-fonts/syne'
+import { Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter'
+import * as SplashScreen from 'expo-splash-screen'
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+SplashScreen.preventAutoHideAsync()
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Syne_700Bold,
+    Syne_800ExtraBold,
+    Syne_600SemiBold,
+    Inter_400Regular,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  })
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync()
+    }
+  }, [fontsLoaded])
+
+  useEffect(() => {
+    if (!fontsLoaded) return
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace('/(tabs)')
+      } else {
+        router.replace('/(auth)/login')
+      }
+    })
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        router.replace('/(tabs)')
+      } else {
+        router.replace('/(auth)/login')
+      }
+    })
+  }, [fontsLoaded])
+
+  if (!fontsLoaded) return null
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
-  );
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+    </Stack>
+  )
 }

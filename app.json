@@ -17,7 +17,13 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCZHLvgZKzaLEtLd0dTXc2nILaaS01EHL0"
+        }
+      },
+      "package": "com.aftabnadeem.PitchOS"
     },
     "web": {
       "output": "static",
@@ -34,11 +40,19 @@
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      "expo-font",
+      "expo-location"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d5aaaa4a-8cda-4394-94fd-b050b48b3f14"
+      }
     }
   }
 }
