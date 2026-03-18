@@ -29,7 +29,7 @@ const TONES = [
   { key: 'casual', label: 'Casual' },
 ]
 
-const GEMINI_API_KEY = 'AIzaSyBLTOwjv2vCji2C6Q0_FZxEpnl2lHBvtHo'
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY
 
 export default function Compose() {
   const [prospectName, setProspectName] = useState('')

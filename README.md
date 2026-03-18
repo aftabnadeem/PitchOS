@@ -1,56 +1,283 @@
-# Welcome to your Expo app 👋
+# PitchOS — AI-Powered Mobile Sales CRM
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> A full-stack mobile sales command center for freelancers, small business owners, and sales reps who want to close deals faster — directly from their phone.
 
-## Get started
+---
 
-1. Install dependencies
+## 📱 Screenshots
 
-   ```bash
-   npm install
-   ```
 
-2. Start the app
+| Login | Dashboard | Pipeline |
+|-------|-----------|----------|
+| ![Login](./assets/screenshots/login.jpeg) | ![Dashboard](./assets/screenshots/dashboard.jpeg) | ![Pipeline](./assets/screenshots/pipeline.jpeg) |
 
-   ```bash
-   npx expo start
-   ```
+| AI Compose | Prospect Map | Team Feed |
+|------------|--------------|-----------|
+| ![Compose](./assets/screenshots/compose.jpeg) | ![Map](./assets/screenshots/map.jpeg) | ![Team](./assets/screenshots/team.jpeg) |
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## ✨ Features
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### 🤖 AI-Powered Outreach
+- Generate personalized cold emails, WhatsApp messages, and call scripts in seconds
+- Powered by **Gemini 2.5 Flash**
+- Tone selector: Professional, Friendly, Aggressive, Casual
+- Editable output — copy directly to clipboard
 
-## Get a fresh project
+### 📊 Kanban Sales Pipeline
+- 5-stage deal board: Lead → Contacted → Replied → Negotiating → Closed
+- Add leads with contact details, deal value, and outreach channel
+- One-tap status progression
+- Total pipeline value tracking
 
-When you're ready, run:
+### 📍 Location-Based Prospecting
+- Discover nearby businesses using **Google Maps SDK** + **Places API**
+- Filter by category: Restaurants, Stores, Offices, Gyms, Hospitals
+- Search businesses by name
+- Tap any pin → Add as lead or generate AI outreach in one tap
 
+### ⚡ Real-Time Team Collaboration
+- Create or join a team via invite code
+- Live activity feed powered by **Supabase Realtime (WebSockets)**
+- Every lead addition and deal movement appears instantly for the entire team
+- No refresh needed — true real-time sync
+
+### 🔐 Authentication & Security
+- Email/password authentication via Supabase Auth
+- Row Level Security (RLS) policies on all tables
+- Persistent sessions with AsyncStorage
+- Team-based data isolation
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Mobile Framework | React Native + Expo (SDK 55) |
+| Language | TypeScript |
+| Navigation | Expo Router (file-based) |
+| Backend & Database | Supabase (Postgres) |
+| Authentication | Supabase Auth |
+| Real-time | Supabase Realtime (WebSockets) |
+| AI | Google Gemini 2.5 Flash |
+| Maps | react-native-maps (Google Maps) |
+| Places | Google Places API |
+| Build | EAS Build |
+| Fonts | Syne + Inter (Google Fonts) |
+| Icons | @expo/vector-icons (Feather) |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- Expo CLI
+- EAS CLI (`npm install -g eas-cli`)
+- Supabase account
+- Google Cloud account (Maps + Places API)
+- Google AI Studio account (Gemini API)
+
+### Installation
+
+**1. Clone the repository**
 ```bash
-npm run reset-project
+git clone https://github.com/yourusername/PitchOS.git
+cd PitchOS
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+**2. Install dependencies**
+```bash
+npm install
+```
 
-### Other setup steps
+**3. Set up environment variables**
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Create a `.env` file in the root directory:
+```env
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+GEMINI_API_KEY=your_gemini_api_key
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+```
 
-## Learn more
+Update `src/lib/supabase.ts` with your Supabase credentials and `app.json` with your Google Maps API key.
 
-To learn more about developing your project with Expo, look at the following resources:
+**4. Set up Supabase database**
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Run these SQL queries in your Supabase SQL Editor:
 
-## Join the community
+```sql
+-- Profiles table
+create table profiles (
+  id uuid references auth.users on delete cascade,
+  full_name text,
+  email text,
+  avatar_url text,
+  team_id uuid,
+  role text default 'member',
+  created_at timestamp default now(),
+  primary key (id)
+);
 
-Join our community of developers creating universal apps.
+-- Teams table
+create table teams (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  invite_code text unique default substring(md5(random()::text), 1, 8),
+  created_by uuid references auth.users,
+  created_at timestamp default now()
+);
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+-- Leads table
+create table leads (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users on delete cascade,
+  name text not null,
+  company text,
+  email text,
+  phone text,
+  channel text default 'email',
+  deal_value numeric default 0,
+  status text default 'lead' check (status in ('lead', 'contacted', 'replied', 'negotiating', 'closed')),
+  notes text,
+  created_at timestamp default now(),
+  updated_at timestamp default now()
+);
+
+-- Activities table
+create table activities (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users on delete cascade,
+  team_id uuid references teams on delete cascade,
+  user_name text,
+  action text not null,
+  lead_name text,
+  lead_company text,
+  from_status text,
+  to_status text,
+  deal_value numeric default 0,
+  created_at timestamp default now()
+);
+
+-- Enable RLS
+alter table profiles enable row level security;
+alter table teams enable row level security;
+alter table leads enable row level security;
+alter table activities enable row level security;
+
+-- Enable Realtime
+alter publication supabase_realtime add table activities;
+alter publication supabase_realtime add table leads;
+```
+
+**5. Run the app**
+```bash
+npx expo start --tunnel
+```
+
+---
+
+## 📦 Building for Android
+
+**Development build (for testing native features):**
+```bash
+eas build --platform android --profile development
+```
+
+**Production build:**
+```bash
+eas build --platform android --profile production
+```
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── app/
+│   ├── (auth)/
+│   │   ├── login.tsx          # Login screen
+│   │   └── signup.tsx         # Signup screen
+│   ├── (tabs)/
+│   │   ├── _layout.tsx        # Tab bar configuration
+│   │   ├── index.tsx          # Dashboard screen
+│   │   ├── pipeline.tsx       # Kanban pipeline screen
+│   │   ├── compose.tsx        # AI compose screen
+│   │   ├── map.tsx            # Prospect map screen
+│   │   └── team.tsx           # Team feed screen
+│   └── _layout.tsx            # Root layout + auth guard
+├── lib/
+│   └── supabase.ts            # Supabase client configuration
+├── constants/
+│   └── Fonts.ts               # Font definitions
+└── assets/                    # Images, icons
+```
+
+---
+
+## 🗄️ Database Schema
+
+```
+auth.users (Supabase built-in)
+    │
+    ├── profiles (1:1)
+    │     ├── id
+    │     ├── full_name
+    │     ├── email
+    │     └── team_id ──────────┐
+    │                           │
+    ├── leads (1:many)          │
+    │     ├── id                │
+    │     ├── user_id           │
+    │     ├── name              │
+    │     ├── company           │
+    │     ├── status            │
+    │     └── deal_value        │
+    │                           ▼
+    └── activities (1:many)   teams
+          ├── id                ├── id
+          ├── user_id           ├── name
+          ├── team_id           └── invite_code
+          └── action
+```
+
+---
+
+## 🔑 API Keys Required
+
+| Service | Where to get it | Used for |
+|---------|----------------|----------|
+| Supabase URL + Anon Key | [supabase.com](https://supabase.com) | Database, Auth, Realtime |
+| Gemini API Key | [aistudio.google.com](https://aistudio.google.com) | AI message generation |
+| Google Maps API Key | [console.cloud.google.com](https://console.cloud.google.com) | Maps SDK + Places API |
+
+> ⚠️ Never commit API keys to version control. Use environment variables.
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+---
+
+## 📄 License
+
+[MIT](LICENSE)
+
+---
+
+## 👤 Author
+
+**Aftab Nadeem**
+- LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)
+- GitHub: [@yourusername](https://github.com/aftabnadeem)
+
+---
+
+> Built with ❤️ using React Native + Supabase + Gemini AI
