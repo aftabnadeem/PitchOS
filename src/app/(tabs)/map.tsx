@@ -18,8 +18,8 @@ import {
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-const GOOGLE_API_KEY = 'AIzaSyCZHLvgZKzaLEtLd0dTXc2nILaaS01EHL0'
-const GEMINI_API_KEY = 'AIzaSyBLTOwjv2vCji2C6Q0_FZxEpnl2lHBvtHo'
+const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY
 
 const PLACE_TYPES = [
   { key: 'restaurant', label: 'Restaurants', icon: 'coffee' },
