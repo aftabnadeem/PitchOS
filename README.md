@@ -275,8 +275,8 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## 👤 Author
 
 **Aftab Nadeem**
-- LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)
-- GitHub: [@yourusername](https://github.com/aftabnadeem)
+- LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/aftab-nadeem-b42772256)
+- GitHub: [@aftabnadeem](https://github.com/aftabnadeem)
 
 ---
 
